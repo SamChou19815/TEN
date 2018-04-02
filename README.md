@@ -12,7 +12,7 @@ repositories {
     maven { url "https://jitpack.io" }
 }
 dependencies {
-    compile 'com.github.SamChou19815:TEN:1.0.0'
+    compile 'com.github.SamChou19815:TEN:1.0.2'
 }
 ```
 
