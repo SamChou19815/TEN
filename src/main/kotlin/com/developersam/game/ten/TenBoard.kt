@@ -297,7 +297,6 @@ class TenBoard : Board {
             when (status) {
                 1, -1 -> // Black/White wins before AI move
                     return TenServerResponse.whenPlayerWin(status)
-                else -> board.switchIdentity()
             }
             // Let AI think
             val decision = MCTS(board = board, timeLimit = 1500)
@@ -330,7 +329,6 @@ class TenBoard : Board {
                         .selectMove()
                 board.makeMoveWithoutCheck(move)
                 status = board.gameStatus
-                board.switchIdentity()
                 if (printGameStatus) {
                     println("Move $moveCounter finished.")
                     val player = if (moveCounter % 2 == 0) "White" else "Black"
