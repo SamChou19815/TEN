@@ -193,14 +193,6 @@ class TenBoard : Board {
         }
     }
 
-    /**
-     * Check whether a move [move], represented by int array tuple [a, b],
-     * is legal.
-     */
-    private fun isLegalMove(move: IntArray): Boolean {
-        return isLegalMove(move[0], move[1])
-    }
-
     override fun makeMoveWithoutCheck(move: IntArray) {
         board[move[0]][move[1]] = _currentPlayerIdentity
         updateBigSquareStatus(move[0])
@@ -216,7 +208,7 @@ class TenBoard : Board {
      * legal/successful.
      */
     fun makeMove(move: IntArray): Boolean {
-        if (!isLegalMove(move)) {
+        if (!isLegalMove(move[0], move[1])) {
             return false
         }
         makeMoveWithoutCheck(move)
