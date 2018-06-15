@@ -1,20 +1,19 @@
 package com.developersam.game.ten
 
-import com.developersam.game.mcts.Board
-import com.developersam.game.mcts.MCTS
+import mcts.MCTS
 import java.util.Arrays
-import java.util.LinkedList
 
 /**
  * The board of the game ten. It implements the [Board] interface from the MCTS
  * framework so that there is an AI for it.
  */
-class TenBoard : Board {
+class Board {
 
     /**
      * In variable names, a big square refers to a 3*3 square;
      * a tile refers to a 1*1 square.
      * Each tile is either 1, -1 or 0 (black, white, empty).
+     * board[a * 9 + b] represents a tile at big square a and small square b.
      */
     private val board: Array<IntArray>
     /**
@@ -34,36 +33,52 @@ class TenBoard : Board {
      */
     private var _currentPlayerIdentity: Int
 
-    override val currentPlayerIdentity: Int
-        get() = _currentPlayerIdentity;
+    /**
+     * [currentPlayerIdentity] returns identity of current player.
+     */
+    val currentPlayerIdentity: Int get() = _currentPlayerIdentity;
 
-    override val copy: TenBoard
-        get() = TenBoard(oldBoard = this)
+    /**
+     * [copy] returns a deep copy of the board to allow different simulations on the
+     * same board without interference.
+     */
+    val copy: Board get() = Board(oldBoard = this)
 
-    override val allLegalMovesForAI: Array<IntArray>
+    /**
+     * [allLegalMovesForAI] returns a list of all legal moves for AI.
+     * DO NOT confuse: a legal move for human is not necessarily one for AI
+     * because AI needs less moves to save time for computation.
+     */
+    val allLegalMovesForAI: List<Move>
         get() {
-            val list = LinkedList<IntArray>()
+            val list = arrayListOf<Move>()
             if (currentBigSquareLegalPosition == -1) {
                 // Can move in every big square
                 for (i in 0 until 9) {
                     for (j in 0 until 9) {
-                        if (isLegalMove(i, j)) {
-                            list.add(intArrayOf(i, j))
+                        if (isLegalMove(a = i, b = j)) {
+                            list.add(element = Move(a = i, b = j))
                         }
                     }
                 }
             } else {
                 for (j in 0 until 9) {
                     // Can only move in the specified square
-                    if (isLegalMove(currentBigSquareLegalPosition, j)) {
-                        list.add(intArrayOf(currentBigSquareLegalPosition, j))
+                    if (isLegalMove(a = currentBigSquareLegalPosition, b = j)) {
+                        list.add(element = Move(a = currentBigSquareLegalPosition, b = j))
                     }
                 }
             }
-            return list.toTypedArray()
+            return list
         }
 
-    override val gameStatus: Int
+    /**
+     * [gameStatus] returns the game status on current board.
+     * This happens immediately after a player makes a move, before
+     * switching identity.
+     * The status must be 1, -1, or 0 (inconclusive).
+     */
+    val gameStatus: Int
         get() {
             for (i in 0 until 9) {
                 updateBigSquareStatus(i)
@@ -103,12 +118,12 @@ class TenBoard : Board {
     }
 
     /**
-     * Initialize the board from a data class [TenBoardData] with all the
+     * Initialize the board from a data class [BoardData] with all the
      * necessary info in [data]. Note that the big square legal positions array
      * is not presented because it can be computed at the server side without
      * extra information.
      */
-    private constructor(data: TenBoardData) {
+    private constructor(data: BoardData) {
         board = data.board
         bigSquaresStatus = IntArray(size = 9)
         for (i in 0 until 9) {
@@ -121,7 +136,7 @@ class TenBoard : Board {
     /**
      * Initialize the board from an [oldBoard].
      */
-    private constructor(oldBoard: TenBoard) {
+    private constructor(oldBoard: Board) {
         board = Array(size = 9) { IntArray(size = 0) }
         bigSquaresStatus = IntArray(size = 9)
         for (i in 0 until 9) {
@@ -138,13 +153,11 @@ class TenBoard : Board {
     /**
      * Decode int [i] stored internally in data structure to player name.
      */
-    private fun decode(i: Int): String {
-        return when (i) {
-            0 -> "0"
-            1 -> "b"
-            -1 -> "w"
-            else -> throw Error("Bad Data in Board!")
-        }
+    private fun decode(i: Int): String = when (i) {
+        0 -> "0"
+        1 -> "b"
+        -1 -> "w"
+        else -> throw Error("Bad Data in Board!")
     }
 
     /**
@@ -193,13 +206,21 @@ class TenBoard : Board {
         }
     }
 
-    override fun makeMoveWithoutCheck(move: IntArray) {
-        board[move[0]][move[1]] = _currentPlayerIdentity
-        updateBigSquareStatus(move[0])
-        currentBigSquareLegalPosition = when {
-            bigSquaresStatus[move[1]] == 0 -> move[1]
-            else -> -1
-        }
+
+    /**
+     * Make a [move] without any check, which can accelerate AI simulation.
+     * It should also switch the identity of the current player.
+     * The identity must be 1 or -1, so that checking game status can determine
+     * who wins.
+     *
+     * Requires:
+     * - [move] is a valid int array representation of a move in the game.
+     */
+    fun makeMoveWithoutCheck(move: Move) {
+        val (a, b) = move
+        board[a][b] = _currentPlayerIdentity
+        updateBigSquareStatus(move.a)
+        currentBigSquareLegalPosition = if (bigSquaresStatus[b] == 0) b else -1
         switchIdentity()
     }
 
@@ -207,8 +228,9 @@ class TenBoard : Board {
      * Make a move [move] with legality check and tells whether the move is
      * legal/successful.
      */
-    fun makeMove(move: IntArray): Boolean {
-        if (!isLegalMove(move[0], move[1])) {
+    private fun makeMove(move: Move): Boolean {
+        val (a, b) = move
+        if (!isLegalMove(a = a, b = b)) {
             return false
         }
         makeMoveWithoutCheck(move)
@@ -275,28 +297,29 @@ class TenBoard : Board {
     companion object {
 
         /**
-         * Respond to a [clientMove] represented by a [TenClientMove] object and
-         * gives back the formatted [TenServerResponse].
+         * Respond to a [clientMove] represented by a [ClientMove] object and
+         * gives back the formatted [ServerResponse].
          */
-        fun respond(clientMove: TenClientMove): TenServerResponse {
-            val board = TenBoard(clientMove.boardBeforeHumanMove)
+        @Suppress(names = ["RedundantVisibilityModifier"])
+        public fun respond(clientMove: ClientMove): ServerResponse {
+            val board = Board(clientMove.boardBeforeHumanMove)
             board.switchIdentity()
-            if (!board.makeMove(clientMove.humanMove)) {
+            if (!board.makeMove(move = clientMove.asMove)) {
                 // Stop illegal move from corrupting game data.
-                return TenServerResponse.illegalMoveResponse
+                return ServerResponse.illegalMoveResponse
             }
             var status = board.gameStatus
             when (status) {
                 1, -1 -> // Black/White wins before AI move
-                    return TenServerResponse.whenPlayerWin(status)
+                    return ServerResponse.whenPlayerWin(status)
             }
             // Let AI think
             val decision = MCTS(board = board, timeLimit = 1500)
             val aiMove = decision.selectMove()
-            board.makeMove(move = aiMove)
+            board.makeMove(move = Move(a = aiMove[0], b = aiMove[1]))
             status = board.gameStatus
             // A full response.
-            return TenServerResponse(aiMove = intArrayOf(aiMove[0], aiMove[1]),
+            return ServerResponse(aiMove = intArrayOf(aiMove[0], aiMove[1]),
                     currentBigSquareLegalPosition =
                     board.currentBigSquareLegalPosition,
                     status = status, aiWinningProbability = aiMove[2])
@@ -308,9 +331,9 @@ class TenBoard : Board {
          * The user of the method can specify whether to print game status out
          * by [printGameStatus], which defaults to true.
          */
-        fun runAGameBetweenTwoAIs(aiThinkingTime: Int,
-                                  printGameStatus: Boolean = true) {
-            val board = TenBoard()
+        internal fun runAGameBetweenTwoAIs(aiThinkingTime: Int,
+                                           printGameStatus: Boolean = true) {
+            val board = Board()
             var moveCounter = 1
             var status = 0
             while (status == 0) {
@@ -319,7 +342,7 @@ class TenBoard : Board {
                 }
                 val move = MCTS(board = board, timeLimit = aiThinkingTime)
                         .selectMove()
-                board.makeMoveWithoutCheck(move)
+                board.makeMoveWithoutCheck(Move(a = move[0], b = move[1]))
                 status = board.gameStatus
                 if (printGameStatus) {
                     println("Move $moveCounter finished.")
