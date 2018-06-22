@@ -1,4 +1,4 @@
-package mcts
+package com.developersam.game.mcts
 
 import com.developersam.game.ten.Board
 import com.developersam.game.ten.Move
@@ -19,7 +19,7 @@ internal class Node(
     /**
      * Children node, which will be initialized later.
      */
-    internal var children: Array<Node>? = null
+    internal var children: List<Node>? = null
     /**
      * The game board stored on the node.
      * It is the backing field of the property.
@@ -69,9 +69,12 @@ internal class Node(
      * the numerator. This method does this iteratively until reaching the root.
      */
     internal fun winningStatisticsPlusOne(winValue: Int) {
-        winningProbNumerator += winValue
-        winningProbDenominator += 1
-        parent?.winningStatisticsPlusOne(winValue = winValue)
+        var node: Node? = this
+        while (node != null) {
+            node.winningProbNumerator += winValue
+            node.winningProbDenominator += 1
+            node = node.parent
+        }
     }
 
     /**

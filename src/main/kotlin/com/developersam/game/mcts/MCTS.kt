@@ -1,8 +1,9 @@
-package mcts
+package com.developersam.game.mcts
 
 import com.developersam.game.ten.Board
 import com.developersam.game.ten.Move
 import java.util.stream.IntStream
+import kotlin.streams.toList
 
 /**
  * [MCTS] stands for Monte Carlo tree search.
@@ -82,12 +83,11 @@ class MCTS(private val board: Board, private val timeLimit: Int) {
                 // board no longer needed at parent level.
                 selectedNode.dereferenceBoard()
             }
-            selectedNode.children = IntStream.range(0, len)
-                    .parallel()
+            selectedNode.children = allLegalMoves
+                    .parallelStream()
                     .unordered()
-                    .mapToObj {
+                    .map { move ->
                         // Simulation Setup
-                        val move = allLegalMoves[it]
                         val b1 = b.copy
                         b1.makeMoveWithoutCheck(move)
                         val n = Node(selectedNode, move, b1)
@@ -97,7 +97,8 @@ class MCTS(private val board: Board, private val timeLimit: Int) {
                             n.winningStatisticsPlusOne(winValue)
                         }
                         n
-                    }.toArray { size -> arrayOfNulls<Node>(size) }
+                    }
+                    .toList()
             simulationCounter += len
         }
         println("# of simulations: $simulationCounter")
@@ -109,7 +110,7 @@ class MCTS(private val board: Board, private val timeLimit: Int) {
      */
     fun selectMove(): IntArray {
         think()
-        val children: Array<Node>? = tree.children
+        val children: List<Node>? = tree.children
         val len = children?.size ?: throw NoLegalMoveException()
         var nodeChosen: Node = children[0]
         // Find the best move

@@ -12,8 +12,7 @@ class TenPerformanceTest {
      */
     @Test
     fun testPerformance() {
-        Board.runAGameBetweenTwoAIs(
-                aiThinkingTime = 50, printGameStatus = false)
+        Board.runAGameBetweenTwoAIs(aiThinkingTime = 100, printGameStatus = false)
     }
 
 }

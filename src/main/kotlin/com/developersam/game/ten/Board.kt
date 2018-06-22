@@ -1,6 +1,6 @@
 package com.developersam.game.ten
 
-import mcts.MCTS
+import com.developersam.game.mcts.MCTS
 import java.util.Arrays
 
 /**

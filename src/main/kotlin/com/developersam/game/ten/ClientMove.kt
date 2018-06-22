@@ -6,8 +6,7 @@ package com.developersam.game.ten
  * - [humanMove] completes the picture by providing human's move in a tuple.
  */
 class ClientMove private constructor(
-        val boardBeforeHumanMove: BoardData,
-        private val humanMove: IntArray
+        val boardBeforeHumanMove: BoardData, private val humanMove: IntArray
 ) {
 
     /**
