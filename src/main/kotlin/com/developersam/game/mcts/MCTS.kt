@@ -2,12 +2,13 @@ package com.developersam.game.mcts
 
 import com.developersam.game.ten.Board
 import com.developersam.game.ten.Move
-import java.util.stream.IntStream
 import kotlin.streams.toList
 
 /**
  * [MCTS] stands for Monte Carlo tree search.
- * It's constructed with a initial [board] and the [timeLimit] in milliseconds.
+ *
+ * @property board the initial board.
+ * @property timeLimit time limit in milliseconds.
  */
 class MCTS(private val board: Board, private val timeLimit: Int) {
 

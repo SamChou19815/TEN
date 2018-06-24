@@ -4,11 +4,13 @@ package com.developersam.game.ten
  * A data class that represents a server response to the client move.
  *
  * Construct a [ServerResponse] from a range of arguments that can help the client decide the status
- * of the game after the transmission:
- * - [aiMove] specifies the move of the AI, which can be a place holder value.
- * - [currentBigSquareLegalPosition] specifies the current big square legal position after AI move.
- * - [status] specifies the status of the game after the move.
- * - [aiWinningProbability] specifies the winning probability of AI.
+ * of the game after the transmission.
+ *
+ * @property aiMove specifies the move of the AI, which can be a place holder value.
+ * @property currentBigSquareLegalPosition specifies the current big square legal position after AI
+ * move.
+ * @property status specifies the status of the game after the move.
+ * @property aiWinningProbability specifies the winning probability of AI.
  */
 class ServerResponse(
         private val aiMove: IntArray,
@@ -31,7 +33,7 @@ class ServerResponse(
                 aiWinningProbability = 0)
 
         /**
-         * Create a [TenServerResponse] when the player wins before the AI can
+         * Create a [ServerResponse] when the player wins before the AI can
          * move.
          */
         @JvmStatic
