@@ -1,5 +1,11 @@
 # TEN
 
+[![Build Status](https://travis-ci.com/SamChou19815/ten.svg?branch=master)](https://travis-ci.com/SamChou19815/ten)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.developersam/game-ten/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.developersam/game-ten)
+![GitHub](https://img.shields.io/github/license/SamChou19815/ten.svg)
+
+![TEN](https://developersam.com/assets/app-icons/ten.png)
+
 TEN Board Game by Developer Sam.
 
 Read the docs [here](https://docs.developersam.com/game-ten/)
@@ -8,7 +14,7 @@ Add this to your `build.gradle` to use the artifact.
 
 ```groovy
 dependencies {
-    compile 'com.developersam:game-ten:1.0.1'
+    compile 'com.developersam:game-ten:+'
 }
 ```
 
