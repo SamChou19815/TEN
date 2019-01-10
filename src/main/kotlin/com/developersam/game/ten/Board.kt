@@ -74,8 +74,7 @@ class Board {
 
     /**
      * [gameStatus] returns the game status on current board.
-     * This happens immediately after a player makes a move, before
-     * switching identity.
+     * This happens immediately after a player makes a move.
      * The status must be 1, -1, or 0 (inconclusive).
      */
     val gameStatus: Int
@@ -205,7 +204,6 @@ class Board {
             bigSquaresStatus[a] == 0 && board[a][b] == 0
         }
     }
-
 
     /**
      * Make a [move] without any check, which can accelerate AI simulation.
