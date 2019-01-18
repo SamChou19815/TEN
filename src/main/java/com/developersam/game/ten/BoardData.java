@@ -5,9 +5,9 @@ package com.developersam.game.ten;
  */
 final class BoardData {
     /**
-     * The raw board.
+     * The raw tiles.
      */
-    final int[][] board = new int[0][];
+    final int[] tiles = new int[0];
     /**
      * The big square to pick.
      */

@@ -3,6 +3,7 @@ package com.developersam.game.ten;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -29,10 +30,10 @@ final class MCTS {
             // Find optimal move and loop down.
             // noinspection ConstantConditions
             List<Node> children = root.children;
-            if (children == null) {
+            if (children.isEmpty()) {
                 return root;
             }
-            double max = 0;
+            double max = -100000;
             Node n = null;
             for (Node node : children) {
                 double ucb = node.getUpperConfidenceBound(isPlayer);
@@ -54,12 +55,12 @@ final class MCTS {
      * @return the win value.
      */
     private static int simulation(int playerIdentity, Board board) {
-        int status = board.getGameStatus();
+        Board b = board;
+        int status = b.getGameStatus();
         while (status == 0) {
-            List<Move> moves = board.getAllLegalMovesForAI();
-            Move move = moves.get(RANDOM.nextInt(moves.size()));
-            board = board.makeMoveWithoutCheck(move);
-            status = board.getGameStatus();
+            List<Move> moves = b.getAllLegalMovesForAI();
+            b = b.makeMoveWithoutCheck(moves.get(RANDOM.nextInt(moves.size())));
+            status = b.getGameStatus();
         }
         return status == playerIdentity ? 1 : 0;
     }
@@ -81,26 +82,36 @@ final class MCTS {
             List<Move> allLegalMoves = b.getAllLegalMovesForAI();
             int len = allLegalMoves.size();
             if (len == 0) {
-                continue;
+                // board no longer needed at parent level.
+                Node n = selectedNode;
+                while (n != null) {
+                    n.winningProbNumerator += playerIdentity == b.getGameStatus() ? 10000 : 0;
+                    n.winningProbDenominator += 10000;
+                    n = n.parent;
+                }
+                simulationCounter += 1;
+            } else {
+                // board no longer needed at parent level.
+                selectedNode.board = null;
+                List<Node> newChildren = allLegalMoves.parallelStream().unordered().map(move -> {
+                    Board newBoard = b.makeMoveWithoutCheck(move);
+                    return new Node(
+                            selectedNode, move, newBoard, simulation(playerIdentity, newBoard)
+                    );
+                }).collect(Collectors.toList());
+                selectedNode.children = newChildren;
+                int winCount = 0;
+                for (int i = 0; i < len; i++) {
+                    winCount += newChildren.get(i).winningProbNumerator;
+                }
+                Node n = selectedNode;
+                while (n != null) {
+                    n.winningProbNumerator += winCount;
+                    n.winningProbDenominator += len;
+                    n = n.parent;
+                }
+                simulationCounter += len;
             }
-            // board no longer needed at parent level.
-            selectedNode.board = null;
-            List<Node> newChildren = allLegalMoves.parallelStream().unordered().map(move -> {
-                Board newBoard = b.makeMoveWithoutCheck(move);
-                return new Node(selectedNode, move, newBoard, simulation(playerIdentity, newBoard));
-            }).collect(Collectors.toList());
-            selectedNode.children = newChildren;
-            int winCount = 0;
-            for (int i = 0; i < len; i++) {
-                winCount += newChildren.get(i).winningProbNumerator;
-            }
-            Node n = selectedNode;
-            while (n != null) {
-                n.winningProbNumerator += winCount;
-                n.winningProbDenominator += len;
-                n = n.parent;
-            }
-            simulationCounter += len;
         }
         System.out.println("# of simulations: " + simulationCounter);
     }
@@ -119,7 +130,6 @@ final class MCTS {
         Node nodeChosen = null;
         // Find the best move
         double maxWinningProbability = 0;
-        // noinspection ConstantConditions
         for (Node n : root.children) {
             double value = n.getWinningProbability();
             if (value > maxWinningProbability) {
@@ -174,7 +184,7 @@ final class MCTS {
         /**
          * A list of children nodes.
          */
-        @Nullable
+        @NotNull
         List<Node> children;
         /**
          * Winning probability tracker.
@@ -185,6 +195,7 @@ final class MCTS {
             this.board = board;
             parent = null;
             move = Move.DUMMY_MOVE;
+            children = Collections.emptyList();
             winningProbNumerator = 0;
             winningProbDenominator = 0;
         }
@@ -193,6 +204,7 @@ final class MCTS {
             this.parent = parent;
             this.move = move;
             this.board = board;
+            children = Collections.emptyList();
             winningProbNumerator = winValue;
             winningProbDenominator = 1;
         }

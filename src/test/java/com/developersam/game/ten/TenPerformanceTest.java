@@ -12,7 +12,7 @@ public final class TenPerformanceTest {
      */
     @Test
     public void testPerformance() {
-        Board.runAGameBetweenTwoAIs(100);
+        Board.runAGameBetweenTwoAIs(50);
     }
     
 }

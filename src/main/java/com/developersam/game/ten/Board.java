@@ -6,7 +6,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -76,10 +75,7 @@ public final class Board {
      * @param boardData the board data.
      */
     private Board(BoardData boardData) {
-        int[] tiles = new int[81];
-        for (int i = 0; i < 9; i++) {
-            System.arraycopy(boardData.board[i], 0, tiles, i * 9, 9);
-        }
+        int[] tiles = boardData.tiles;
         int[] bigSquaresStatusArray = new int[9];
         for (int i = 0; i < 9; i++) {
             bigSquaresStatusArray[i] = computeSquareStatus(tiles, i * 9);
@@ -199,7 +195,7 @@ public final class Board {
                 }
             }
         }
-        return Collections.unmodifiableList(list);
+        return list;
     }
     
     /**
