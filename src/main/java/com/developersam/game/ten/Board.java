@@ -12,7 +12,7 @@ import java.util.List;
  * An immutable representation of the game board.
  */
 public final class Board {
-    
+
     /**
      * In variable names, a big square refers to a 3*3 square;
      * A tile refers to a 1*1 square.
@@ -39,7 +39,7 @@ public final class Board {
      * The identity of the current player. Must be 1 or -1.
      */
     private final int playerIdentity;
-    
+
     /**
      * Create an empty board.
      */
@@ -47,7 +47,7 @@ public final class Board {
         this(new int[81], new int[9], -1,
                 0, 0, 1);
     }
-    
+
     /**
      * Construct a board with all its fields. Only used for internal construction.
      *
@@ -68,13 +68,13 @@ public final class Board {
         this.whiteBigSquaresCounter = whiteBigSquaresCounter;
         this.playerIdentity = currentPlayerIdentity;
     }
-    
+
     /**
      * Initialize the board from a data class BoardData with all the necessary info.
      *
      * @param boardData the board data.
      */
-    private Board(BoardData boardData) {
+    public Board(BoardData boardData) {
         int[] tiles = boardData.tiles;
         int[] bigSquaresStatusArray = new int[9];
         for (int i = 0; i < 9; i++) {
@@ -95,16 +95,16 @@ public final class Board {
         this.bigSquareToPick = boardData.bigSquareToPick;
         this.blackBigSquaresCounter = blackBigSquaresCounter;
         this.whiteBigSquaresCounter = whiteBigSquaresCounter;
-        this.playerIdentity = boardData.aiIdentity;
+        this.playerIdentity = boardData.playerIdentity;
     }
-    
+
     /**
      * @return the current player identity.
      */
     int getPlayerIdentity() {
         return playerIdentity;
     }
-    
+
     /**
      * Perform a naive check on the square about whether the player with id win the square.
      * Rule:  primitive tic-tac-toe.
@@ -124,7 +124,7 @@ public final class Board {
                 || s[offset] == id && s[offset + 4] == id && s[offset + 8] == id
                 || s[offset + 2] == id && s[offset + 4] == id && s[offset + 6] == id;
     }
-    
+
     /**
      * A function that helps to determine whether a square with offset belongs
      * to black (1) or white (-1).
@@ -148,7 +148,7 @@ public final class Board {
         }
         return 2;
     }
-    
+
     /**
      * Check whether a move is legal.
      *
@@ -169,7 +169,7 @@ public final class Board {
             return bigSquaresStatusArray[a] == 0 && tiles[a * 9 + b] == 0;
         }
     }
-    
+
     /**
      * @return a list of all legal moves for AI.
      */
@@ -197,7 +197,7 @@ public final class Board {
         }
         return list;
     }
-    
+
     /**
      * Make a [move] without any check, which can accelerate AI simulation.
      * It should also switch the identity of the current player.
@@ -228,7 +228,7 @@ public final class Board {
                 blackCounter, whiteCounter, -playerIdentity
         );
     }
-    
+
     /**
      * Make a move [move] with legality check and tells whether the move is
      * legal/successful.
@@ -237,7 +237,7 @@ public final class Board {
     private Board makeMove(Move move) {
         return isLegalMove(move) ? makeMoveWithoutCheck(move) : null;
     }
-    
+
     /**
      * Returns the game status on current board.
      * The status must be 1, -1, or 0 (inconclusive).
@@ -251,7 +251,7 @@ public final class Board {
         }
         return blackBigSquaresCounter > whiteBigSquaresCounter ? 1 : -1;
     }
-    
+
     /**
      * Print tile content at specified index.
      *
@@ -269,7 +269,7 @@ public final class Board {
             throw new Error("Bad board!");
         }
     }
-    
+
     /**
      * Print the board.
      */
@@ -304,37 +304,23 @@ public final class Board {
         }
         System.out.println("-----------------");
     }
-    
+
     /**
      * Respond to a client move.
      *
-     * @param clientMove a client move.
+     * @param clientBoard the board of the client.
      * @return the server response.
      */
     @NotNull
-    public static ServerResponse respondToClient(@NotNull ClientMove clientMove) {
-        Board board = new Board(clientMove.boardBeforeHumanMove);
-        board = board.makeMove(clientMove.humanMove);
-        if (board == null) {
-            // Stop illegal move from corrupting game data.
-            return ServerResponse.ILLEGAL_MOVE_RESP;
-        }
-        int status = board.getGameStatus();
-        if (status == 1 || status == -1) {
-            // Black/White wins before AI move
-            return ServerResponse.whenPlayerWin(status);
-        }
+    public static ServerResponse respondToClient(@NotNull BoardData clientBoard) {
+        Board board = new Board(clientBoard);
         // Let AI think
         Decision decision = MCTS.selectMove(board, 1500);
-        Move aiMove = decision.move;
-        board = board.makeMoveWithoutCheck(aiMove);
-        status = board.getGameStatus();
         // A full response.
         return new ServerResponse(
-                aiMove, board.bigSquareToPick, status, decision.winningProbability
-        );
+                decision.move, decision.winningPercentage, decision.simulationCounter);
     }
-    
+
     /**
      * Run a game between two AIs.
      *
@@ -352,7 +338,7 @@ public final class Board {
             System.out.format("Move %d finished.\n", moveCounter);
             String player = moveCounter % 2 == 0 ? "White" : "Black";
             System.out.format("Winning Probability for %s is %d%%.\n",
-                    player, decision.winningProbability);
+                    player, decision.winningPercentage);
             moveCounter++;
         }
         board.print();
@@ -362,5 +348,5 @@ public final class Board {
             System.out.println("White wins!");
         }
     }
-    
+
 }

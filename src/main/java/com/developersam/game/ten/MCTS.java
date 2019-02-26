@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
  * The MCTS decider.
  */
 final class MCTS {
-    
+
     /**
      * The global random object.
      */
     private static final Random RANDOM = new Random();
-    
+
     /**
      * Select and return a node starting from parent, according to selection rule in MCTS.
      *
@@ -46,7 +46,7 @@ final class MCTS {
             root = n;
         }
     }
-    
+
     /**
      * Perform simulation for a specific board and gives back a win value between 0 and 1.
      *
@@ -64,14 +64,15 @@ final class MCTS {
         }
         return status == playerIdentity ? 1 : 0;
     }
-    
+
     /**
      * A method that connected all parts of of MCTS to build an evaluation tree.
      *
      * @param root the root the think on.
      * @param timeLimit the time limit.
+     * @return the simulation counter.
      */
-    private static void think(Node root, long timeLimit) {
+    private static int think(Node root, long timeLimit) {
         int playerIdentity = root.board.getPlayerIdentity();
         long tStart = System.currentTimeMillis();
         int simulationCounter = 0;
@@ -114,8 +115,9 @@ final class MCTS {
             }
         }
         System.out.println("# of simulations: " + simulationCounter);
+        return simulationCounter;
     }
-    
+
     /**
      * Give the final move chosen by AI with the format
      * (...decided move, winning probability percentage by that move).
@@ -126,7 +128,7 @@ final class MCTS {
      */
     static Decision selectMove(@NotNull Board board, long timeLimit) {
         Node root = new Node(board);
-        think(root, timeLimit);
+        int simulationCounter = think(root, timeLimit);
         Node nodeChosen = null;
         // Find the best move
         double maxWinningProbability = 0;
@@ -138,14 +140,18 @@ final class MCTS {
             }
         }
         // noinspection ConstantConditions
-        return new Decision(nodeChosen.move, nodeChosen.getWinningProbabilityInPercentage());
+        return new Decision(
+                nodeChosen.move,
+                nodeChosen.getWinningProbabilityInPercentage(),
+                simulationCounter
+        );
     }
-    
+
     /**
      * The decision object.
      */
     static final class Decision {
-        
+
         /**
          * The decided move.
          */
@@ -153,20 +159,25 @@ final class MCTS {
         /**
          * The winning probability of the decided move.
          */
-        final int winningProbability;
-        
-        private Decision(Move move, int winningProbability) {
+        final int winningPercentage;
+        /**
+         * The counter that records the number of simulation done.
+         */
+        final int simulationCounter;
+
+        private Decision(Move move, int winningPercentage, int simulationCounter) {
             this.move = move;
-            this.winningProbability = winningProbability;
+            this.winningPercentage = winningPercentage;
+            this.simulationCounter = simulationCounter;
         }
-        
+
     }
-    
+
     /**
      * The internal node.
      */
     private static final class Node {
-        
+
         /**
          * A parent node. Root node does not have a parent node.
          */
@@ -190,7 +201,7 @@ final class MCTS {
          * Winning probability tracker.
          */
         int winningProbNumerator, winningProbDenominator;
-        
+
         Node(Board board) {
             this.board = board;
             parent = null;
@@ -199,7 +210,7 @@ final class MCTS {
             winningProbNumerator = 0;
             winningProbDenominator = 0;
         }
-        
+
         Node(@NotNull Node parent, @NotNull Move move, @NotNull Board board, int winValue) {
             this.parent = parent;
             this.move = move;
@@ -208,21 +219,21 @@ final class MCTS {
             winningProbNumerator = winValue;
             winningProbDenominator = 1;
         }
-        
+
         /**
          * @return winning probability between 0 and 1.
          */
         double getWinningProbability() {
             return ((double) winningProbNumerator) / ((double) winningProbDenominator);
         }
-        
+
         /**
          * @return winning probability in percentage.
          */
         int getWinningProbabilityInPercentage() {
             return (int) (getWinningProbability() * 100);
         }
-        
+
         /**
          * Get upper confidence bound in MCTS, which needs a [isPlayer] parameter
          * to tell whether to calculate in favor or against the player.
@@ -239,7 +250,7 @@ final class MCTS {
             double winningProb = isPlayer ? getWinningProbability() : 1 - getWinningProbability();
             return winningProb + Math.sqrt(2 * lnt / winningProbDenominator);
         }
-        
+
     }
-    
+
 }

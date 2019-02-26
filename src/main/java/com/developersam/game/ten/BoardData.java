@@ -3,23 +3,29 @@ package com.developersam.game.ten;
 /**
  * The board data class to hold data from the client.
  */
-final class BoardData {
+@SuppressWarnings("WeakerAccess")
+public final class BoardData {
     /**
      * The raw tiles.
      */
-    final int[] tiles = new int[0];
+    final int[] tiles;
     /**
      * The big square to pick.
      */
-    final int bigSquareToPick = -1;
+    final int bigSquareToPick;
     /**
      * The identity of AI.
      */
-    final int aiIdentity = -1;
-    
+    final int playerIdentity;
+
     /**
      * Disable external construction.
      */
-    BoardData() {}
-    
+    BoardData() {
+        // must initialize here to avoid gson reflection bug
+        tiles = new int[0];
+        bigSquareToPick = -1;
+        playerIdentity = -1;
+    }
+
 }

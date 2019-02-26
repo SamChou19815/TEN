@@ -1,59 +1,31 @@
 package com.developersam.game.ten;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * The server response data class.
  */
 @SuppressWarnings({"FieldCanBeLocal", "WeakerAccess"})
 public final class ServerResponse {
-    
-    /**
-     * A standard response to an illegal move.
-     */
-    @NotNull
-    static final ServerResponse ILLEGAL_MOVE_RESP =
-            new ServerResponse(Move.DUMMY_MOVE, -1, 2, 0);
-    
+
     /**
      * Specifies the move of the AI, which can be a place holder value.
      */
-    private final Move aiMove;
+    private final int[] move;
     /**
-     * Specifies the big square to pick after AI move.
+     * The winning probability of the decided move.
      */
-    private final int bigSquareToPick;
+    private final int winningPercentage;
     /**
-     * Specifies the status of the game after the move.
+     * The counter that records the number of simulation done.
      */
-    private final int status;
-    /**
-     * Specifies the winning probability of AI.
-     */
-    private final int aiWinningProbability;
-    
+    private final int simulationCounter;
+
     /**
      * Construct a response.
-     *
-     * @param aiMove aiMove as specified above.
-     * @param bigSquareToPick bigSquareToPick as specified above.
-     * @param status status as specified above.
-     * @param aiWinningProbability aiWinningProbability as specified above.
      */
-    ServerResponse(Move aiMove, int bigSquareToPick, int status, int aiWinningProbability) {
-        this.aiMove = aiMove;
-        this.bigSquareToPick = bigSquareToPick;
-        this.status = status;
-        this.aiWinningProbability = aiWinningProbability;
+    ServerResponse(Move aiMove, int winningPercentage, int simulationCounter) {
+        this.move = new int[]{aiMove.a, aiMove.b};
+        this.winningPercentage = winningPercentage;
+        this.simulationCounter = simulationCounter;
     }
-    
-    /**
-     * @param winnerIdentity the identity of the winner.
-     * @return the server response when the player wins before the AI can move.
-     */
-    @NotNull
-    static ServerResponse whenPlayerWin(int winnerIdentity) {
-        return new ServerResponse(Move.DUMMY_MOVE, -1, winnerIdentity, 0);
-    }
-    
+
 }
