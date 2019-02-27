@@ -4,11 +4,7 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.developersam/game-ten/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.developersam/game-ten)
 ![GitHub](https://img.shields.io/github/license/SamChou19815/ten.svg)
 
-<img src="https://developersam.com/assets/app-icons/ten.png" alt="TEN" width=300 />
-
 TEN Board Game by Developer Sam.
-
-Read the docs [here](https://docs.developersam.com/game-ten/)
 
 Add this to your `build.gradle` to use the artifact.
 
