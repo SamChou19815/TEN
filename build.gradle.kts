@@ -56,8 +56,8 @@ publishing {
                 }
                 licenses {
                     license {
-                        name.set("MIT")
-                        url.set("http://www.opensource.org/licenses/mit-license.php")
+                        name.set("AGPL-3.0")
+                        url.set("https://opensource.org/licenses/AGPL-3.0")
                     }
                 }
                 developers {
